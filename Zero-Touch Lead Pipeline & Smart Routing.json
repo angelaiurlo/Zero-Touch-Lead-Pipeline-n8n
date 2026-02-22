@@ -1,0 +1,564 @@
+{
+  "name": "Zero-Touch Lead Pipeline & Smart Routing",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# ZERO-TOUCH LEAD PIPELINE\n## Smart Routing & Instant Enrichment\n\n**Problem solved:** In B2B sales, conversion drops 400% if a lead is not contacted within 5 minutes. Manual triage (LinkedIn research, copy-paste into CRM) creates an avoidable bottleneck.\n\n**Solution:** This pipeline intercepts every inbound lead in real-time, enriches it with firmographic data (employee count, revenue, industry), and routes it automatically:\n\n```\nWebhook\n  └──► Enrich via API\n          └──► Switch (employee_count)\n                  ├── > 50  ──► 🚨 Slack Alert + CRM (High Priority)\n                  └── ≤ 50  ──► CRM (Standard Queue / Nurturing)\n```\n\n**Speed-to-Lead target: < 800ms**",
+        "height": 436,
+        "width": 660,
+        "color": 5
+      },
+      "id": "9c36065d-0c90-4d6e-9403-0d2a61bd403b",
+      "name": "🏗️ Pipeline Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1952,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Webhook Trigger\n\nActs as the **universal entry point** for all inbound leads.\n\nAccepts a `POST` request from any frontend form provider:\n- Typeform\n- Webflow\n- WordPress / Gravity Forms\n- Custom landing pages\n\n**Expected payload:**\n```json\n{\n  \"name\": \"John Smith\",\n  \"email\": \"john@acmecorp.com\",\n  \"company_name\": \"Acme Corp\"\n}\n```",
+        "height": 396,
+        "width": 408,
+        "color": 7
+      },
+      "id": "986409e1-aa87-4417-96c8-e90afaedc7d5",
+      "name": "📌 Node 1 — Webhook",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Firmographic Enrichment\n\nExtracts the **email domain** and queries an external API to retrieve company-level data.\n\n**Compatible APIs:**\n- Clearbit Enrichment API\n- Apollo.io Enrichment\n- Hunter.io\n- Mock/custom API for testing\n\n\n**Data appended to payload:**\n- `employee_count` → used by the Switch router\n- `industry` → for CRM tagging\n- `annual_revenue` → for deal sizing\n- `company_linkedin_url` → for AE outreach\n\n\n⚙️ Add your API key as a **Bearer Token** in the node credentials.",
+        "height": 400,
+        "width": 392,
+        "color": 7
+      },
+      "id": "15ac4d95-fb3b-4042-81cf-1c94e4ab8542",
+      "name": "📌 Node 2 — Enrichment",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Switch Router\n\nEvaluates `employee_count` against your **ICP thresholds** and routes accordingly.\n\n`employee_count > 50` -> VIP / High-Ticket\n`employee_count <= 50` -> Standard Queue\n\n⚙️ **To customize:** adjust the threshold value (`50`) to match your company's Ideal Customer Profile (ICP). You can also add a third rule for `employee_count > 500` to create an \"Enterprise\" tier.",
+        "height": 276,
+        "width": 380,
+        "color": 4
+      },
+      "id": "8c09d9d2-a2c5-4548-a2b0-ab53661cf13a",
+      "name": "📌 Node 3 — Switch Router",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## VIP LANE\n### employee_count > 50\n\n**Step A — Slack Alert:**\nInstantly pings the `#enterprise-sales` channel with a fully formatted message. Senior AEs are notified in real-time with all enriched data and a direct call-to-action.\n\n**Step B — CRM Upsert (Contact + Deal):**\n1. Creates or updates the **Contact** in HubSpot (matched by email to prevent duplicates).\n2. Creates an associated **Deal** (`[Company] - New Enterprise Lead`) with:\n- Deal stage: `appointmentscheduled` (Qualified)\n- Priority flag: `High`\n- Owner: Assigned directly to Senior AE (via ID)\n\n\n**Goal:** Human closer contacts the lead in < 5 minutes.",
+        "height": 456,
+        "width": 360,
+        "color": 3
+      },
+      "id": "82c2ef90-31e1-4e1f-b05a-9d6ecbbd401d",
+      "name": "🚨 VIP Lane",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        832,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## STANDARD LANE\n### employee_count ≤ 50\n\n**CRM Upsert (Contact + Deal):**\n1. Silently creates or updates the **Contact** in HubSpot.\n2. Creates an associated **Deal** (`[Company] - Standard Inbound`) with:\n- Deal stage: Default / `appointmentscheduled`\n- Priority flag: `Low`\n- Owner: `Unassigned` (Pooled for Junior queue)\n- Enrollment: Automated email nurturing sequence\n\n\n**No human intervention required.** The lead enters the automated drip campaign immediately without wasting expensive Senior sales hours.\n",
+        "height": 340,
+        "width": 504,
+        "color": 2
+      },
+      "id": "bb277f36-3c4c-45a5-aceb-8c8652cdc52c",
+      "name": "📋 Standard Lane",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        688,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ SETUP CHECKLIST\n\n**Before going live:**\n\n- [ ] Copy the Webhook **Production URL** into your form provider\n- [ ] Add your firmographic API key Apollo to the HTTP Request node credentials\n- [ ] Verify the enrichment API response field names match the Switch expression (`employee_count`)\n- [ ] Adjust the Switch threshold (`50`) to your ICP definition\n- [ ] Configure Slack credentials and set the correct channel name (`#enterprise-sales`)\n- [ ] Configure HubSpot credentials in both CRM nodes\n- [ ] Test with a VIP payload (employee_count > 50) and a Standard payload (employee_count ≤ 50)\n- [ ] Publish the workflow",
+        "height": 348,
+        "width": 664,
+        "color": 6
+      },
+      "id": "176f4c46-e465-44dd-b62f-a2e973f3b07a",
+      "name": "⚙️ Setup Checklist",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1952,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-ingest",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "6cbca237-927e-4df5-b88e-4f56e3448d15",
+      "name": "Webhook — Inbound Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        656
+      ],
+      "webhookId": "zero-touch-lead-pipeline"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "lead_name",
+              "value": "={{ $('Webhook — Inbound Lead').item.json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "m2",
+              "name": "lead_email",
+              "value": "={{ $('Webhook — Inbound Lead').item.json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "m3",
+              "name": "company_name",
+              "value": "={{ $('Webhook — Inbound Lead').item.json.body.company_name || $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "m4",
+              "name": "employee_count",
+              "value": "={{ $json.organization.estimated_num_employees || 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "m5",
+              "name": "annual_revenue",
+              "value": "={{ $json.organization.annual_revenue_printed || 'Unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "m6",
+              "name": "industry",
+              "value": "={{ $json.organization.industry || 'Unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "m7",
+              "name": "linkedin_url",
+              "value": "={{ $json.organization.linkedin_url || \"Unknown\" }}",
+              "type": "string"
+            },
+            {
+              "id": "m8",
+              "name": "enriched_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ca7ecf8d-02fa-42b7-8938-4c10b6f3249a",
+      "name": "Merge — Build Enriched Profile",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -576,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.employee_count }}",
+                    "rightValue": 50,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    },
+                    "id": "bcc1bb0a-598a-4fb2-88bb-065899b36af4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VIP — High-Ticket Lead"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.employee_count }}",
+                    "rightValue": 50,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lte"
+                    },
+                    "id": "ed335b94-36f0-48b5-af8c-b5fbac10bbc7"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Standard Queue"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      },
+      "id": "1266c583-5c71-407d-8269-9b8cfe20ecad",
+      "name": "Switch — Route by Company Size",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -320,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#enterprise-sales",
+          "mode": "name"
+        },
+        "text": "=🚨 *HIGH-TICKET LEAD ALERT* 🚨\n\n*Name:* {{ $json.lead_name }}\n*Email:* {{ $json.lead_email }}\n*Company:* {{ $json.company_name }}\n*Employees:* {{ $json.employee_count }}+\n*Industry:* {{ $json.industry }}\n*Est. Revenue:* {{ $json.annual_revenue }}\n*LinkedIn:* {{ $json.linkedin_url }}\n\n⏱️ *Contact within 5 minutes to maximize conversion.*\n👉 <mailto:{{ $json.lead_email }}|Click to email now>",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "8cd7e65a-14ae-49ba-b527-7555b44ec389",
+      "name": "Slack — Alert Enterprise Sales Channel",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -48,
+        496
+      ],
+      "webhookId": "8292306a-0f3c-4793-ba14-493136003f9c"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"received\", \"message\": \"Lead successfully ingested and routed.\" }",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "4a6a3047-8233-4e93-948e-d122e0f06860",
+      "name": "Respond 200 — VIP Confirmed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"received\", \"message\": \"Lead successfully ingested and routed.\" }",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "07582d61-869b-454e-8c76-8945741daa5c",
+      "name": "Respond 200 — Standard Confirmed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.apollo.io/v1/organizations/enrich?domain={{ $json.body.email.split('@')[1] }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 8000
+        }
+      },
+      "id": "cfb472aa-5929-4435-a3de-a7f81cda33d2",
+      "name": "Enrich Lead — Apollo.io",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -800,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "={{ $json.email }}",
+        "additionalFields": {
+          "annualRevenue": "={{ $('Merge — Build Enriched Profile').item.json.annual_revenue }}",
+          "companyName": "={{ $('Merge — Build Enriched Profile').item.json.company_name }}",
+          "companySize": "={{ $('Merge — Build Enriched Profile').item.json.employee_count }}",
+          "contactOwner": "=88472910",
+          "customPropertiesUi": {
+            "customPropertiesValues": [
+              {
+                "property": "=priority",
+                "value": "High"
+              }
+            ]
+          },
+          "industry": "={{ $('Merge — Build Enriched Profile').item.json.industry }}",
+          "lifeCycleStage": "=salesqualifiedlead",
+          "linkedinUrl": "={{ $('Merge — Build Enriched Profile').item.json.linkedin_url }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        496
+      ],
+      "id": "0d89a562-1d64-4cdb-93ae-5c950bcf1708",
+      "name": "CRM — Upsert High Priority Lead"
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "resource": "deal",
+        "stage": "=appointmentscheduled",
+        "additionalFields": {
+          "associatedVids": "={{ $json.id }}",
+          "dealName": "={{ $json.organization.name }} - New Enterprise Lead"
+        }
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        496
+      ],
+      "id": "c6a14e46-14bc-41fb-97aa-29266f6263c5",
+      "name": "CRM — Create a deal"
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "resource": "deal",
+        "stage": "=appointmentscheduled",
+        "additionalFields": {
+          "associatedVids": "={{ $json.id }}",
+          "dealName": "={{ $json.organization.name }} - Standard Inbound"
+        }
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        832
+      ],
+      "id": "bdfd2845-4d55-4a84-b5f2-b935806b36d1",
+      "name": "CRM — Create a deal1"
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "={{ $json.email }}",
+        "additionalFields": {
+          "annualRevenue": "={{ $('Merge — Build Enriched Profile').item.json.annual_revenue }}",
+          "companyName": "={{ $('Merge — Build Enriched Profile').item.json.company_name }}",
+          "companySize": "={{ $('Merge — Build Enriched Profile').item.json.employee_count }}",
+          "customPropertiesUi": {
+            "customPropertiesValues": [
+              {
+                "property": "=priority",
+                "value": "Low"
+              }
+            ]
+          },
+          "industry": "={{ $('Merge — Build Enriched Profile').item.json.industry }}",
+          "lifeCycleStage": "=salesqualifiedlead",
+          "linkedinUrl": "={{ $('Merge — Build Enriched Profile').item.json.linkedin_url }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        -48,
+        832
+      ],
+      "id": "4bab90ef-38d9-4ba7-b46b-25e1f92795f3",
+      "name": "CRM — Upsert Standard Lead & Enroll Nurture"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook — Inbound Lead": {
+      "main": [
+        [
+          {
+            "node": "Enrich Lead — Apollo.io",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge — Build Enriched Profile": {
+      "main": [
+        [
+          {
+            "node": "Switch — Route by Company Size",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch — Route by Company Size": {
+      "main": [
+        [
+          {
+            "node": "Slack — Alert Enterprise Sales Channel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CRM — Upsert Standard Lead & Enroll Nurture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack — Alert Enterprise Sales Channel": {
+      "main": [
+        [
+          {
+            "node": "CRM — Upsert High Priority Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich Lead — Apollo.io": {
+      "main": [
+        [
+          {
+            "node": "Merge — Build Enriched Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM — Upsert High Priority Lead": {
+      "main": [
+        [
+          {
+            "node": "CRM — Create a deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM — Create a deal": {
+      "main": [
+        [
+          {
+            "node": "Respond 200 — VIP Confirmed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM — Create a deal1": {
+      "main": [
+        [
+          {
+            "node": "Respond 200 — Standard Confirmed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM — Upsert Standard Lead & Enroll Nurture": {
+      "main": [
+        [
+          {
+            "node": "CRM — Create a deal1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9d71eb36-96b4-4532-98c5-a45ddc4618e1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aa899d52bc9a99662e8a8f3c92d223624a7cc5e3650b081a8a1a22bb1554df16"
+  },
+  "id": "xTuBiFB1CBlRFy1G",
+  "tags": []
+}
