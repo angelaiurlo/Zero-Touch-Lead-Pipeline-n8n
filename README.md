@@ -37,7 +37,7 @@ Enterprise leads trigger instant push notifications to Senior Account Executives
 * **VIP Lane:** Triggers a real-time Slack/Teams alert to the Enterprise Sales channel with actionable data, and upserts the CRM record with a "High Priority" flag.
 * **Standard Lane:** Silently upserts the CRM record and assigns it to a junior queue or an automated nurturing campaign.
 
-<img width="1660" height="464" alt="image" src="https://github.com/user-attachments/assets/7e6be3ac-138d-4ff3-928c-2cf5244ae73c" />
+<img width="1664" height="465" alt="image" src="https://github.com/user-attachments/assets/f929533f-2959-40c5-ade0-86981f2077cf" />
 
 ---
 
